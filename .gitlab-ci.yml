@@ -1,0 +1,30 @@
+stages:
+  - deploy
+
+deploy_develop:
+  stage: deploy
+  script:
+    - docker build --build-arg REACT_APP_ENV=dev . -t vtp-user-view:latest
+    - docker rm -f vtp-user-view || true
+    - docker create --name vtp-user-view --network texugo-network --ip 172.22.0.50 --restart unless-stopped vtp-user-view:latest
+    - docker start vtp-user-view
+  environment:
+    name: local
+  only:
+    - develop
+  tags:
+    - deploy-local
+
+deploy_production:
+  stage: deploy
+  script:
+    - docker build --build-arg REACT_APP_ENV=prod . -t vtp-user-view:latest
+    - docker rm -f vtp-user-view || true
+    - docker create --name vtp-user-view --network tycho-network --ip 172.18.0.49 --env-file=/dados/tycho.env --restart unless-stopped vtp-user-view:latest
+    - docker start vtp-user-view
+  environment:
+    name: production
+  only:
+    - main
+  tags:
+    - deploy-prod
